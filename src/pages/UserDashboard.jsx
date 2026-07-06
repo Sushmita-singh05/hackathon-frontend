@@ -9,6 +9,11 @@ import { mockMedicines, mockTreatmentHistory, userStats } from '../data/mockData
 
 const UserDashboard = () => {
   const [activeSection, setActiveSection] = useState('medicines');
+
+  // Read user info from localStorage (set during registration)
+  const storedUser = JSON.parse(localStorage.getItem('klinikapp_user') || '{}');
+  const userName = storedUser.fullName || 'Patient';
+  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   const [medicines, setMedicines] = useState(mockMedicines);
 
   const takenCount = medicines.filter(m => m.taken).length;
@@ -28,50 +33,283 @@ const UserDashboard = () => {
 
   // SVG flower that grows based on adherence
   const FlowerGrowth = () => {
-    const petalColors = ['#4CAF50', '#81C784', '#A5D6A7', '#66BB6A', '#43A047', '#2E7D32'];
     return (
-      <div className="relative w-40 h-48 mx-auto">
-        {/* Pot */}
-        <svg className="absolute bottom-0 left-1/2 -translate-x-1/2" width="60" height="30" viewBox="0 0 60 30">
-          <path d="M5 0 L55 0 L50 28 Q30 32 10 28 Z" fill="#8D6E63" opacity="0.8" />
-          <path d="M5 0 L55 0 L53 8 L7 8 Z" fill="#A1887F" opacity="0.6" />
+      <div className="relative w-52 h-56 mx-auto">
+        <svg width="208" height="224" viewBox="0 0 208 224" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          <defs>
+            {/* Pot gradients */}
+            <linearGradient id="potGrad" x1="60" y1="180" x2="148" y2="224">
+              <stop offset="0%" stopColor="#D4845A" />
+              <stop offset="50%" stopColor="#C0724A" />
+              <stop offset="100%" stopColor="#A85D3A" />
+            </linearGradient>
+            <linearGradient id="potRimGrad" x1="55" y1="175" x2="153" y2="185">
+              <stop offset="0%" stopColor="#E8A07A" />
+              <stop offset="100%" stopColor="#D4845A" />
+            </linearGradient>
+            <linearGradient id="potHighlight" x1="85" y1="190" x2="85" y2="215">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+            </linearGradient>
+            {/* Stem gradient */}
+            <linearGradient id="stemGrad" x1="104" y1="170" x2="104" y2="70">
+              <stop offset="0%" stopColor="#2E7D32" />
+              <stop offset="40%" stopColor="#43A047" />
+              <stop offset="100%" stopColor="#66BB6A" />
+            </linearGradient>
+            {/* Leaf gradients */}
+            <linearGradient id="leafLeft" x1="60" y1="130" x2="95" y2="145">
+              <stop offset="0%" stopColor="#81C784" />
+              <stop offset="100%" stopColor="#388E3C" />
+            </linearGradient>
+            <linearGradient id="leafRight" x1="148" y1="110" x2="113" y2="125">
+              <stop offset="0%" stopColor="#A5D6A7" />
+              <stop offset="100%" stopColor="#43A047" />
+            </linearGradient>
+            {/* Petal gradients */}
+            <radialGradient id="petalPink" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#F8BBD0" />
+              <stop offset="60%" stopColor="#F06292" />
+              <stop offset="100%" stopColor="#E91E63" />
+            </radialGradient>
+            <radialGradient id="petalCoral" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#FFCDD2" />
+              <stop offset="60%" stopColor="#EF5350" />
+              <stop offset="100%" stopColor="#E53935" />
+            </radialGradient>
+            <radialGradient id="petalRose" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#FCE4EC" />
+              <stop offset="60%" stopColor="#EC407A" />
+              <stop offset="100%" stopColor="#C2185B" />
+            </radialGradient>
+            <radialGradient id="petalSoft" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#FFF9C4" />
+              <stop offset="60%" stopColor="#FFB74D" />
+              <stop offset="100%" stopColor="#FF9800" />
+            </radialGradient>
+            <radialGradient id="petalLavender" cx="50%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#E1BEE7" />
+              <stop offset="60%" stopColor="#AB47BC" />
+              <stop offset="100%" stopColor="#8E24AA" />
+            </radialGradient>
+            {/* Center gradient */}
+            <radialGradient id="centerGrad" cx="50%" cy="40%" r="50%">
+              <stop offset="0%" stopColor="#FFF9C4" />
+              <stop offset="50%" stopColor="#FFD54F" />
+              <stop offset="100%" stopColor="#FFB300" />
+            </radialGradient>
+            {/* Glow filter */}
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="8" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* === Pot === */}
+          {/* Pot body */}
+          <path d="M65 185 L143 185 L135 218 Q104 225 73 218 Z" fill="url(#potGrad)" />
+          {/* Pot rim */}
+          <path d="M58 178 L150 178 L148 188 L60 188 Z" rx="3" fill="url(#potRimGrad)" />
+          {/* Pot rim top highlight */}
+          <path d="M60 178 L148 178 L147 181 L61 181 Z" fill="#EDB892" opacity="0.6" />
+          {/* Pot body highlight */}
+          <path d="M75 190 L90 190 L88 212 Q80 214 76 212 Z" fill="url(#potHighlight)" />
+          {/* Soil */}
+          <ellipse cx="104" cy="185" rx="38" ry="5" fill="#5D4037" opacity="0.5" />
+
+          {/* === Stem === */}
+          {flowerStage >= 1 && (
+            <motion.rect
+              x="101" width="6" rx="3"
+              initial={{ y: 175, height: 0 }}
+              animate={{ y: 72, height: 103 }}
+              transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+              fill="url(#stemGrad)"
+            />
+          )}
+
+          {/* === Leaves === */}
+          {flowerStage >= 2 && (
+            <>
+              {/* Left leaf */}
+              <motion.g
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.9, type: 'spring', stiffness: 120 }}
+                style={{ transformOrigin: '100px 148px' }}
+              >
+                <path d="M100 148 Q72 135 58 142 Q54 148 62 154 Q78 160 100 148 Z" fill="url(#leafLeft)" />
+                {/* Leaf vein */}
+                <path d="M98 148 Q80 143 65 147" stroke="#2E7D32" strokeWidth="0.8" fill="none" opacity="0.5" />
+              </motion.g>
+              {/* Right leaf */}
+              <motion.g
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1.1, type: 'spring', stiffness: 120 }}
+                style={{ transformOrigin: '108px 128px' }}
+              >
+                <path d="M108 128 Q136 115 150 122 Q154 128 146 134 Q130 140 108 128 Z" fill="url(#leafRight)" />
+                {/* Leaf vein */}
+                <path d="M110 128 Q130 123 145 127" stroke="#388E3C" strokeWidth="0.8" fill="none" opacity="0.5" />
+              </motion.g>
+              {/* Small bud leaf */}
+              <motion.g
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1.3, type: 'spring', stiffness: 120 }}
+                style={{ transformOrigin: '100px 160px' }}
+              >
+                <path d="M100 162 Q85 158 78 163 Q80 168 92 166 Q98 164 100 162 Z" fill="#81C784" opacity="0.7" />
+              </motion.g>
+            </>
+          )}
+
+          {/* === Petals (outer layer) === */}
+          {flowerStage >= 3 && (
+            <>
+              {[
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalPink)", rotate: 0 },
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalCoral)", rotate: 60 },
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalRose)", rotate: 120 },
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalSoft)", rotate: 180 },
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalLavender)", rotate: 240 },
+                { d: "M104 72 Q96 42 104 28 Q112 42 104 72", fill: "url(#petalPink)", rotate: 300 },
+              ].map((petal, i) => (
+                <motion.path
+                  key={`outer-${i}`}
+                  d={petal.d}
+                  fill={petal.fill}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 0.9 }}
+                  transition={{ delay: 1.4 + i * 0.08, type: 'spring', stiffness: 150, damping: 12 }}
+                  style={{ transformOrigin: '104px 72px', transform: `rotate(${petal.rotate}deg)` }}
+                  filter="url(#glow)"
+                />
+              ))}
+
+              {/* Inner petals (smaller, rotated 30deg offset) */}
+              {[
+                { fill: "url(#petalRose)", rotate: 30 },
+                { fill: "url(#petalSoft)", rotate: 90 },
+                { fill: "url(#petalPink)", rotate: 150 },
+                { fill: "url(#petalLavender)", rotate: 210 },
+                { fill: "url(#petalCoral)", rotate: 270 },
+                { fill: "url(#petalRose)", rotate: 330 },
+              ].map((petal, i) => (
+                <motion.path
+                  key={`inner-${i}`}
+                  d="M104 72 Q99 52 104 42 Q109 52 104 72"
+                  fill={petal.fill}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 0.85 }}
+                  transition={{ delay: 1.8 + i * 0.06, type: 'spring', stiffness: 180, damping: 14 }}
+                  style={{ transformOrigin: '104px 72px', transform: `rotate(${petal.rotate}deg)` }}
+                />
+              ))}
+
+              {/* Center */}
+              <motion.circle
+                cx="104" cy="72" r="10"
+                fill="url(#centerGrad)"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 2.2, type: 'spring', stiffness: 200 }}
+                filter="url(#glow)"
+                style={{ transformOrigin: '104px 72px' }}
+              />
+              {/* Center detail dots */}
+              {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+                <motion.circle
+                  key={`dot-${i}`}
+                  cx={104 + 5 * Math.cos((angle * Math.PI) / 180)}
+                  cy={72 + 5 * Math.sin((angle * Math.PI) / 180)}
+                  r="1.2"
+                  fill="#F57F17"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 2.4 + i * 0.05, type: 'spring' }}
+                  opacity="0.7"
+                />
+              ))}
+            </>
+          )}
+
+          {/* === Full bloom sparkle particles === */}
+          {flowerStage >= 4 && (
+            <>
+              {[
+                { cx: 75, cy: 45, delay: 0 },
+                { cx: 135, cy: 50, delay: 0.4 },
+                { cx: 60, cy: 75, delay: 0.8 },
+                { cx: 148, cy: 80, delay: 1.2 },
+                { cx: 88, cy: 25, delay: 0.6 },
+                { cx: 120, cy: 30, delay: 1.0 },
+                { cx: 70, cy: 60, delay: 1.4 },
+                { cx: 140, cy: 65, delay: 0.2 },
+              ].map((spark, i) => (
+                <motion.circle
+                  key={`spark-${i}`}
+                  cx={spark.cx}
+                  cy={spark.cy}
+                  r="2"
+                  fill="#FFD54F"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{
+                    opacity: [0, 1, 0.6, 1, 0],
+                    scale: [0, 1.2, 0.8, 1.2, 0],
+                    y: [0, -8, -4, -8, -12],
+                  }}
+                  transition={{
+                    duration: 3,
+                    delay: spark.delay,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  filter="url(#glow)"
+                />
+              ))}
+              {/* Glow halo behind flower */}
+              <motion.circle
+                cx="104" cy="72" r="45"
+                fill="none"
+                stroke="#FFD54F"
+                strokeWidth="1.5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0.4, 0.15, 0.4, 0], scale: [0.9, 1.1, 1.0, 1.1, 0.9] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ transformOrigin: '104px 72px' }}
+              />
+            </>
+          )}
         </svg>
-        {/* Stem */}
-        <motion.div initial={{ height: 0 }} animate={{ height: flowerStage >= 1 ? '55%' : '0%' }} transition={{ duration: 1, delay: 0.3 }}
-          className="absolute bottom-7 left-1/2 -translate-x-1/2 w-1.5 bg-gradient-to-t from-primary-dark to-secondary rounded-full origin-bottom" />
-        {/* Leaves */}
-        {flowerStage >= 2 && (
-          <>
-            <motion.div initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: -30 }} transition={{ delay: 0.8, type: 'spring' }}
-              className="absolute bottom-16 left-1/2 -translate-x-full origin-right">
-              <div className="w-8 h-4 bg-secondary rounded-full" />
-            </motion.div>
-            <motion.div initial={{ scale: 0, rotate: 45 }} animate={{ scale: 1, rotate: 30 }} transition={{ delay: 1, type: 'spring' }}
-              className="absolute bottom-24 left-1/2 origin-left">
-              <div className="w-8 h-4 bg-primary-light rounded-full" />
-            </motion.div>
-          </>
-        )}
-        {/* Petals */}
-        {flowerStage >= 3 && petalColors.map((color, i) => (
-          <motion.div key={i} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 0.8 }} transition={{ delay: 1.2 + i * 0.1, type: 'spring' }}
-            className="absolute top-6 left-1/2"
-            style={{ transform: `translate(-50%, -50%) rotate(${i * 60}deg) translateY(-16px)` }}>
-            <div className="w-5 h-8 rounded-full" style={{ backgroundColor: color }} />
-          </motion.div>
-        ))}
-        {/* Center */}
-        {flowerStage >= 3 && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.8, type: 'spring' }}
-            className="absolute top-6 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-accent shadow-lg" />
-        )}
-        {/* Sparkle for 100% */}
-        {flowerStage >= 4 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }}
-            className="absolute -top-2 left-1/2 -translate-x-1/2">
-            <Sparkles size={20} className="text-accent" />
-          </motion.div>
-        )}
+
+        {/* Stage label */}
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2">
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+            flowerStage >= 4 ? 'bg-gradient-to-r from-pink-500 to-amber-400 text-white shadow-lg shadow-pink-300/40' :
+            flowerStage >= 3 ? 'bg-pink-100 text-pink-600' :
+            flowerStage >= 2 ? 'bg-green-100 text-green-600' :
+            flowerStage >= 1 ? 'bg-emerald-50 text-emerald-500' :
+            'bg-gray-100 text-gray-400'
+          }`}>
+            {flowerStage >= 4 ? '✨ Full Bloom!' :
+             flowerStage >= 3 ? '🌸 Blooming' :
+             flowerStage >= 2 ? '🌿 Growing' :
+             flowerStage >= 1 ? '🌱 Sprouting' :
+             '🫘 Seed'}
+          </span>
+        </div>
       </div>
     );
   };
@@ -93,10 +331,10 @@ const UserDashboard = () => {
   };
 
   return (
-    <DashboardLayout sidebarItems={sidebarItems} userName="Priya Sharma" userRole="Patient" userAvatar="PS">
+    <DashboardLayout sidebarItems={sidebarItems} userName={userName} userRole="Patient" userAvatar={userInitials}>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Good Morning, Priya! 🌸</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Good Morning, {userName.split(' ')[0]}! 🌸</h1>
         <p className="text-text-light mt-1">Let's keep your recovery on track today.</p>
       </div>
 
@@ -241,7 +479,45 @@ const UserDashboard = () => {
               <Flower2 size={20} className="text-primary" />
               <h3 className="font-bold">Your Recovery Flower</h3>
             </div>
-            <FlowerGrowth />
+            <div className="relative w-52 h-56 mx-auto flex items-center justify-center overflow-hidden rounded-2xl">
+              <motion.img
+                src="/images/sunflower.png"
+                alt="Recovery Sunflower"
+                initial={{ scale: 0.4, opacity: 0, filter: 'grayscale(100%)' }}
+                animate={{
+                  scale: flowerStage >= 4 ? 1 : flowerStage >= 3 ? 0.85 : flowerStage >= 2 ? 0.65 : flowerStage >= 1 ? 0.5 : 0.4,
+                  opacity: flowerStage >= 1 ? 1 : 0.3,
+                  filter: flowerStage >= 4 ? 'grayscale(0%) brightness(1.1)' : flowerStage >= 3 ? 'grayscale(10%)' : flowerStage >= 2 ? 'grayscale(40%)' : flowerStage >= 1 ? 'grayscale(70%)' : 'grayscale(100%)',
+                }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+              {flowerStage >= 4 && (
+                <motion.div
+                  className="absolute inset-0 rounded-2xl"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0.3, 0, 0.3, 0] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  style={{ boxShadow: 'inset 0 0 40px rgba(255, 215, 0, 0.4)' }}
+                />
+              )}
+              {/* Stage label */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+                <span className={`text-xs font-bold px-3 py-1 rounded-full backdrop-blur-sm ${
+                  flowerStage >= 4 ? 'bg-gradient-to-r from-pink-500 to-amber-400 text-white shadow-lg shadow-pink-300/40' :
+                  flowerStage >= 3 ? 'bg-pink-100/90 text-pink-600' :
+                  flowerStage >= 2 ? 'bg-green-100/90 text-green-600' :
+                  flowerStage >= 1 ? 'bg-emerald-50/90 text-emerald-500' :
+                  'bg-gray-100/90 text-gray-400'
+                }`}>
+                  {flowerStage >= 4 ? '✨ Full Bloom!' :
+                   flowerStage >= 3 ? '🌸 Blooming' :
+                   flowerStage >= 2 ? '🌿 Growing' :
+                   flowerStage >= 1 ? '🌱 Sprouting' :
+                   '🫘 Seed'}
+                </span>
+              </div>
+            </div>
             <p className="text-xs text-text-muted mt-4 text-center">
               {progress < 25 ? 'Take your first medicine to start growing!' :
                progress < 50 ? 'Your flower is sprouting! Keep going!' :

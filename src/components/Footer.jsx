@@ -25,7 +25,7 @@ const Footer = () => {
           <div className="lg:col-span-2">
             <Logo size={36} />
             <p className="mt-4 text-text-light text-sm leading-relaxed max-w-md">
-              MedBloom helps small clinics improve patient treatment completion
+              KlinikApp helps small clinics improve patient treatment completion
               through digital records, smart reminders, and gamification. Built
               with care for healthcare providers.
             </p>
@@ -50,7 +50,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4 text-text">Get in Touch</h4>
             <p className="text-sm text-text-light mb-4">
-              hello@medbloom.health
+              hello@klinikapp.health
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
@@ -69,7 +69,7 @@ const Footer = () => {
         {/* Divider */}
         <div className="border-t border-primary/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-text-muted">
-            © 2026 MedBloom. All rights reserved.
+            © 2026 KlinikApp. All rights reserved.
           </p>
           <p className="text-sm text-text-muted flex items-center gap-1">
             Made with <Heart size={14} className="text-red-400 fill-red-400" /> for better healthcare

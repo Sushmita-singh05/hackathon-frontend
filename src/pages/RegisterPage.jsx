@@ -63,7 +63,7 @@ const RegisterPage = () => {
                   <span className="gradient-text">get started?</span>
                 </h1>
                 <p className="text-text-light text-lg max-w-xl mx-auto">
-                  Choose your role to begin your healthcare journey with MedBloom.
+                  Choose your role to begin your healthcare journey with KlinikApp.
                 </p>
               </div>
 

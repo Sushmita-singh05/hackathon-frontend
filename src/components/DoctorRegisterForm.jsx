@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, User as UserIcon, Mail, Phone, Lock,
   Eye, EyeOff, Building2, MapPin, FileText, Upload, CheckCircle,
-  Clock, Shield
+  Clock, Shield, AlertCircle
 } from 'lucide-react';
 
 const steps = [
@@ -17,18 +17,130 @@ const DoctorRegisterForm = ({ onBack }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [shakeButton, setShakeButton] = useState(false);
   const [form, setForm] = useState({
     fullName: '', email: '', mobile: '', password: '', confirmPassword: '',
     clinicName: '', clinicAddress: '', regNumber: '', certificate: null,
   });
 
-  const updateForm = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
-  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, 2));
+  const updateForm = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    // Clear the error for this field when the user starts typing
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateBasicInfo = () => {
+    const newErrors = {};
+
+    if (!form.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+
+    if (!form.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!form.mobile.trim()) {
+      newErrors.mobile = 'Mobile number is required';
+    } else if (!/^\d{10}$/.test(form.mobile.trim())) {
+      newErrors.mobile = 'Please enter a valid 10-digit mobile number';
+    }
+
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+    } else if (form.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateVerification = () => {
+    const newErrors = {};
+
+    if (!form.clinicName.trim()) {
+      newErrors.clinicName = 'Clinic name is required';
+    }
+
+    if (!form.clinicAddress.trim()) {
+      newErrors.clinicAddress = 'Clinic address is required';
+    }
+
+    if (!form.regNumber.trim()) {
+      newErrors.regNumber = 'Registration number is required';
+    }
+
+    if (!form.certificate) {
+      newErrors.certificate = 'Please upload your certificate';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNextStep = () => {
+    if (currentStep === 0) {
+      if (validateBasicInfo()) {
+        setCurrentStep(1);
+      } else {
+        setShakeButton(true);
+        setTimeout(() => setShakeButton(false), 600);
+      }
+    } else if (currentStep === 1) {
+      if (validateVerification()) {
+        setCurrentStep(2);
+      } else {
+        setShakeButton(true);
+        setTimeout(() => setShakeButton(false), 600);
+      }
+    } else {
+      setCurrentStep((s) => Math.min(s + 1, 2));
+    }
+  };
+
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
-  const inputClass = "w-full pl-12 pr-4 py-3.5 bg-bg rounded-xl border border-primary/10 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-text-muted/50";
-  const inputPassClass = "w-full pl-12 pr-12 py-3.5 bg-bg rounded-xl border border-primary/10 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-text-muted/50";
+  const inputBase = "w-full pl-12 pr-4 py-3.5 bg-bg rounded-xl border text-sm focus:outline-none transition-all placeholder:text-text-muted/50";
+  const inputPassBase = "w-full pl-12 pr-12 py-3.5 bg-bg rounded-xl border text-sm focus:outline-none transition-all placeholder:text-text-muted/50";
+  const inputNormal = "border-primary/10 focus:border-primary focus:ring-2 focus:ring-primary/10";
+  const inputError = "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200";
   const iconClass = "absolute left-4 top-1/2 -translate-y-1/2 text-text-muted";
+
+  const getInputClass = (field) => `${inputBase} ${errors[field] ? inputError : inputNormal}`;
+  const getPassInputClass = (field) => `${inputPassBase} ${errors[field] ? inputError : inputNormal}`;
+
+  const ErrorMessage = ({ field }) => (
+    <AnimatePresence>
+      {errors[field] && (
+        <motion.p
+          initial={{ opacity: 0, y: -4, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: 'auto' }}
+          exit={{ opacity: 0, y: -4, height: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-1.5 text-xs text-red-500 mt-1.5 pl-1"
+        >
+          <AlertCircle size={12} />
+          {errors[field]}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <div className="max-w-xl mx-auto">
@@ -60,25 +172,142 @@ const DoctorRegisterForm = ({ onBack }) => {
         {currentStep === 0 && (
           <motion.div key="step-0" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-lg shadow-primary/5 space-y-5">
-              <div><label className="block text-sm font-medium text-text mb-2">Full Name</label><div className="relative"><UserIcon size={18} className={iconClass} /><input type="text" placeholder="Dr. Anil Kumar" value={form.fullName} onChange={(e) => updateForm('fullName', e.target.value)} className={inputClass} /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Email</label><div className="relative"><Mail size={18} className={iconClass} /><input type="email" placeholder="doctor@clinic.com" value={form.email} onChange={(e) => updateForm('email', e.target.value)} className={inputClass} /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Mobile Number</label><div className="relative"><Phone size={18} className={iconClass} /><input type="tel" placeholder="+91 98765 43210" value={form.mobile} onChange={(e) => updateForm('mobile', e.target.value)} className={inputClass} /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Password</label><div className="relative"><Lock size={18} className={iconClass} /><input type={showPassword ? 'text' : 'password'} placeholder="Create a strong password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} className={inputPassClass} /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Confirm Password</label><div className="relative"><Lock size={18} className={iconClass} /><input type={showConfirm ? 'text' : 'password'} placeholder="Confirm your password" value={form.confirmPassword} onChange={(e) => updateForm('confirmPassword', e.target.value)} className={inputPassClass} /><button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors">{showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Full Name <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <UserIcon size={18} className={iconClass} />
+                  <input type="text" placeholder="Dr. Anil Kumar" value={form.fullName} onChange={(e) => updateForm('fullName', e.target.value)} className={getInputClass('fullName')} />
+                </div>
+                <ErrorMessage field="fullName" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Email <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <Mail size={18} className={iconClass} />
+                  <input type="email" placeholder="doctor@clinic.com" value={form.email} onChange={(e) => updateForm('email', e.target.value)} className={getInputClass('email')} />
+                </div>
+                <ErrorMessage field="email" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Mobile Number <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <Phone size={18} className={iconClass} />
+                  <input type="tel" placeholder="+91 98765 43210" value={form.mobile} onChange={(e) => updateForm('mobile', e.target.value)} className={getInputClass('mobile')} />
+                </div>
+                <ErrorMessage field="mobile" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Password <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <Lock size={18} className={iconClass} />
+                  <input type={showPassword ? 'text' : 'password'} placeholder="Create a strong password" value={form.password} onChange={(e) => updateForm('password', e.target.value)} className={getPassInputClass('password')} />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                </div>
+                <ErrorMessage field="password" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Confirm Password <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <Lock size={18} className={iconClass} />
+                  <input type={showConfirm ? 'text' : 'password'} placeholder="Confirm your password" value={form.confirmPassword} onChange={(e) => updateForm('confirmPassword', e.target.value)} className={getPassInputClass('confirmPassword')} />
+                  <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors">{showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                </div>
+                <ErrorMessage field="confirmPassword" />
+              </div>
             </div>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={nextStep} className="mt-6 w-full py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2">Continue <ArrowRight size={18} /></motion.button>
+
+            {/* Error summary when there are validation errors */}
+            <AnimatePresence>
+              {Object.keys(errors).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm"
+                >
+                  <AlertCircle size={16} className="shrink-0" />
+                  Please fill in all required fields to continue
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              animate={shakeButton ? { x: [0, -10, 10, -10, 10, -5, 5, 0] } : {}}
+              transition={shakeButton ? { duration: 0.5 } : {}}
+              onClick={handleNextStep}
+              className="mt-4 w-full py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              Continue <ArrowRight size={18} />
+            </motion.button>
           </motion.div>
         )}
 
         {currentStep === 1 && (
           <motion.div key="step-1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.3 }}>
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-primary/10 p-6 sm:p-8 shadow-lg shadow-primary/5 space-y-5">
-              <div><label className="block text-sm font-medium text-text mb-2">Clinic Name</label><div className="relative"><Building2 size={18} className={iconClass} /><input type="text" placeholder="HealthFirst Clinic" value={form.clinicName} onChange={(e) => updateForm('clinicName', e.target.value)} className={inputClass} /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Clinic Address</label><div className="relative"><MapPin size={18} className="absolute left-4 top-4 text-text-muted" /><textarea placeholder="123, MG Road, Pune" value={form.clinicAddress} onChange={(e) => updateForm('clinicAddress', e.target.value)} rows={3} className="w-full pl-12 pr-4 py-3.5 bg-bg rounded-xl border border-primary/10 text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all placeholder:text-text-muted/50 resize-none" /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Registration Number</label><div className="relative"><FileText size={18} className={iconClass} /><input type="text" placeholder="MCI-XXXX-XXXX" value={form.regNumber} onChange={(e) => updateForm('regNumber', e.target.value)} className={inputClass} /></div></div>
-              <div><label className="block text-sm font-medium text-text mb-2">Upload Certificate</label><label className="flex flex-col items-center justify-center w-full py-8 bg-bg rounded-xl border-2 border-dashed border-primary/20 hover:border-primary/40 transition-colors cursor-pointer group"><Upload size={28} className="text-text-muted group-hover:text-primary transition-colors mb-2" /><span className="text-sm text-text-muted group-hover:text-primary transition-colors">{form.certificate ? form.certificate.name : 'Click to upload'}</span><span className="text-xs text-text-muted/50 mt-1">PDF, JPG, PNG (max 5MB)</span><input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => updateForm('certificate', e.target.files?.[0] || null)} /></label></div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Clinic Name <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <Building2 size={18} className={iconClass} />
+                  <input type="text" placeholder="HealthFirst Clinic" value={form.clinicName} onChange={(e) => updateForm('clinicName', e.target.value)} className={getInputClass('clinicName')} />
+                </div>
+                <ErrorMessage field="clinicName" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Clinic Address <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <MapPin size={18} className="absolute left-4 top-4 text-text-muted" />
+                  <textarea placeholder="123, MG Road, Pune" value={form.clinicAddress} onChange={(e) => updateForm('clinicAddress', e.target.value)} rows={3} className={`w-full pl-12 pr-4 py-3.5 bg-bg rounded-xl border text-sm focus:outline-none transition-all placeholder:text-text-muted/50 resize-none ${errors.clinicAddress ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-200' : 'border-primary/10 focus:border-primary focus:ring-2 focus:ring-primary/10'}`} />
+                </div>
+                <ErrorMessage field="clinicAddress" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Registration Number <span className="text-red-400">*</span></label>
+                <div className="relative">
+                  <FileText size={18} className={iconClass} />
+                  <input type="text" placeholder="MCI-XXXX-XXXX" value={form.regNumber} onChange={(e) => updateForm('regNumber', e.target.value)} className={getInputClass('regNumber')} />
+                </div>
+                <ErrorMessage field="regNumber" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text mb-2">Upload Certificate <span className="text-red-400">*</span></label>
+                <label className={`flex flex-col items-center justify-center w-full py-8 bg-bg rounded-xl border-2 border-dashed transition-colors cursor-pointer group ${errors.certificate ? 'border-red-400 hover:border-red-500' : 'border-primary/20 hover:border-primary/40'}`}>
+                  <Upload size={28} className="text-text-muted group-hover:text-primary transition-colors mb-2" />
+                  <span className="text-sm text-text-muted group-hover:text-primary transition-colors">{form.certificate ? form.certificate.name : 'Click to upload'}</span>
+                  <span className="text-xs text-text-muted/50 mt-1">PDF, JPG, PNG (max 5MB)</span>
+                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => updateForm('certificate', e.target.files?.[0] || null)} />
+                </label>
+                <ErrorMessage field="certificate" />
+              </div>
             </div>
-            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={nextStep} className="mt-6 w-full py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2">Submit for Verification <ArrowRight size={18} /></motion.button>
+
+            {/* Error summary */}
+            <AnimatePresence>
+              {Object.keys(errors).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="mt-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm"
+                >
+                  <AlertCircle size={16} className="shrink-0" />
+                  Please fill in all required fields to continue
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              animate={shakeButton ? { x: [0, -10, 10, -10, 10, -5, 5, 0] } : {}}
+              transition={shakeButton ? { duration: 0.5 } : {}}
+              onClick={handleNextStep}
+              className="mt-4 w-full py-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl shadow-lg shadow-primary/25 hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              Submit for Verification <ArrowRight size={18} />
+            </motion.button>
           </motion.div>
         )}
 

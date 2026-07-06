@@ -47,7 +47,7 @@ const DashboardLayout = ({ children, sidebarItems, userName, userRole, userAvata
                 whileHover={{ x: 4 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={item.onClick}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-gradient-to-r from-primary/10 to-secondary/5 text-primary shadow-sm border border-primary/10'
                     : 'text-text-light hover:bg-primary/5 hover:text-primary'
@@ -126,7 +126,7 @@ const DashboardLayout = ({ children, sidebarItems, userName, userRole, userAvata
                       item.onClick();
                       setSidebarOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
                       item.active
                         ? 'bg-primary/10 text-primary'
                         : 'text-text-light hover:bg-primary/5'

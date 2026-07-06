@@ -1,4 +1,4 @@
-// Mock data for MedBloom dashboard pages
+// Mock data for KlinikApp dashboard pages
 
 export const mockPatients = [
   {

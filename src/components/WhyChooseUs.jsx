@@ -45,14 +45,14 @@ const WhyChooseUs = () => {
             transition={{ duration: 0.6 }}
           >
             <span className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-              Why MedBloom
+              Why KlinikApp
             </span>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Why Choose{' '}
-              <span className="gradient-text">MedBloom?</span>
+              <span className="gradient-text">KlinikApp?</span>
             </h2>
             <p className="text-text-light text-lg mb-10 leading-relaxed">
-              We understand the challenges small clinics face. MedBloom is
+              We understand the challenges small clinics face. KlinikApp is
               purpose-built to be simple, affordable, and effective.
             </p>
 
